@@ -1,5 +1,26 @@
 version: '3.7'
 services:
+    redis:
+        image: redis:latest
+    celery:
+        build: 
+            context: .
+            dockerfile: celery/Dockerfile
+        depends_on:
+            - redis
+    flower:
+        image: mher/flower:0.9.5
+        container_name: marketplace-flower
+        restart: always
+        environment:
+            - CELERY_BROKER_URL=redis://redis:6379
+            - FLOWER_PORT=5555
+            - FLOWER_BASIC_AUTH=admin:admin
+        ports:
+            - "5555:5555"
+        depends_on:
+            - celery
+            - redis
     postgres:
         image: postgres:9.6
         environment:

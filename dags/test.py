@@ -1,19 +1,37 @@
-from airflow import DAG 
-from airflow.operators.dummy_operator import DummyOperator 
-from airflow.operators.bash_operator import BashOperator 
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator  import PythonOperator
 from datetime import datetime
+import time 
 
-default_args = { 'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2022, 1, 1), 'email_on_failure': False, 'email_on_retry': False, 'retries': 1, }
+default_args = {
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "start_date": datetime(2022, 1, 1),
+    "retries": 1,
+}
 
-dag = DAG('test_dag', default_args=default_args, description='A simple DAG for Airflow', schedule_interval='@daily', catchup=False)
+dag = DAG(
+    "test_dag",
+    default_args=default_args,
+    description="A simple DAG for Airflow",
+    schedule_interval="1 * * * *",
+    catchup=False,
+)
 
-start = DummyOperator(task_id='start', dag=dag)
+def PrintMessage(ti):
+    print("Hello, world!")
+    ti.xcom_push(key="PrintMessage", value={"key": "value"})
 
-task1 = BashOperator( task_id='task1', bash_command='echo "Hello from Task 1"', dag=dag )
+def PrintMessage2(ti):
+    value = ti.xcom_pull(key="PrintMessage")
+    print(value)
 
-task2 = BashOperator( task_id='task2', bash_command='echo "Hello from Task 2"', dag=dag )
 
-end = DummyOperator(task_id='end', dag=dag)
+task = PythonOperator(task_id="python_task", python_callable=PrintMessage, dag=dag)
+task2 = PythonOperator(task_id="python_task2", python_callable=PrintMessage2, dag=dag)
 
-start >> task1 >> task2 >> end
-
+task >> task2
