@@ -35,3 +35,6 @@ task = PythonOperator(task_id="python_task", python_callable=PrintMessage, dag=d
 task2 = PythonOperator(task_id="python_task2", python_callable=PrintMessage2, dag=dag)
 
 task >> task2
+
+
+# Это потрясаяюще теперь надо проверить....
